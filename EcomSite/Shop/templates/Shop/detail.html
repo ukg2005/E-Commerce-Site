@@ -1,0 +1,103 @@
+{% extends 'Shop/base.html' %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-12">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <a class="navbar-brand" href="#">Navbar</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+              <ul class="navbar-nav ml-auto">
+                <li class="nav-item mr-2">
+                    <button type="button" class="btn btn-secondary" data-container="body" data-toggle="popover" data-placement="bottom" data-content="Vivamus
+                        sagittis lacus vel augue laoreet rutrum faucibus." id="cart" data-html="true">
+                        Cart(0)
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-outline-success" href="/checkout" id="checkoutBtn">Checkout</a>
+                </li>
+              </ul>
+            </div>
+          </nav>
+    </div>
+</div>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <img src="{{ product_object.image }}" class="card-img-top img-fluid" alt="{{ product_object.name }}">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h2 class="mb-3">{{ product_object.name }}</h2>
+            <h4 class="text-success">&#8377;{{ product_object.discount_price }}</h4>
+            <h5 class="text-muted"><del>&#8377;{{ product_object.price }}</del></h5>
+            <p class="mt-4">{{ product_object.desc }}</p>
+            <div class="mt-4">
+                <button class="btn btn-warning btn-lg" onclick="addToCart('{{ product_object.id }}')">Add to Cart</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let cart = localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')) : {};
+
+    function displayCart(cart) {
+        let cartStr = '';
+        cartStr += '<h5>Cart Contents</h5>';
+
+        if (Object.keys(cart).length === 0) {
+            cartStr += '<p>Your cart is empty</p>';
+        } else {
+            for (let x in cart) {
+                cartStr += cart[x][1] + ' - Qty: ' + cart[x][0] + '<br>';
+            }
+            cartStr += '<div class="mt-2"><button class="btn btn-warning btn-sm" onclick="clearCart()">Clear Cart</button></div>';
+        }
+        
+        $('#cart')
+            .attr('data-content', cartStr)
+            .popover('dispose')
+            .popover({ html: true, content: cartStr, sanitize: false })
+            .popover('show');
+            
+    }
+
+    function addToCart(itemId) {
+        let productName = document.getElementById('name' + itemId)?.innerHTML || "Product " + itemId;
+        let productPrice = parseFloat(document.getElementById('price' + itemId)?.innerHTML);
+        
+        if (!cart[itemId]) {
+            cart[itemId] = [0, productName, 0];
+        }
+        cart[itemId][0] += 1;
+        cart[itemId][2] += parseFloat(productPrice);
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        document.getElementById('cart').innerHTML = 'Cart(' + Object.keys(cart).length + ')';
+
+        if (Object.keys(cart).length !== 0) {
+            document.getElementById('checkoutBtn').className = 'btn btn-success';
+        }
+
+        displayCart(cart);
+    }
+
+    $(document).ready(function() {
+        displayCart(cart);
+        document.getElementById('cart').innerHTML = 'Cart(' + Object.keys(cart).length + ')';
+    });
+
+    function clearCart() {
+        cart = {};
+        localStorage.removeItem('cart');
+        document.getElementById('checkoutBtn').className = 'btn btn-outline-success';
+        document.getElementById('cart').innerHTML = 'Cart(0)';
+        displayCart(cart);
+    }
+</script>
+{% endblock %}

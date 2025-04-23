@@ -1,0 +1,139 @@
+{% extends 'Shop/base.html' %}
+
+{% block body %}
+<body>
+    <div class="row">
+        <div class="col-md-12">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <a class="navbar-brand" href="#">Navbar</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                  <ul class="navbar-nav ml-auto">
+                    <li class="nav-item mr-2">
+                        <button type="button" class="btn btn-secondary" data-container="body" data-toggle="popover" data-placement="bottom" data-content="Vivamus
+                            sagittis lacus vel augue laoreet rutrum faucibus." id="cart" data-html="true">
+                            Cart(0)
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-success" href="/checkout" id="checkoutBtn">Checkout</a>
+                    </li>
+                  </ul>
+                </div>
+              </nav>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-sm">
+                    <form class="card-body row no-gutters align-items-center" method="get">
+                        <div class="col">
+                            <input type="search" name="item_name" placeholder="Search for Products" class="form-control form-control-borderless">
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-success">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% for product in product_objects %}
+            <div class="col-md-3 mb-4">
+                <div class="card">
+                    <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: contain;">
+                    <div class="card-body">
+                        <h5 class="card-title" id="name{{ product.id }}">{{ product.name }}</h5>
+                        <p class="card-text" id="price{{ product.id }}">{{ product.price }}</p>
+                        <div>
+                            <a class="btn btn-warning" href="/{{ product.id }}">View</a>
+                            <a class="btn btn-warning" onclick="addToCart('{{ product.id }}', '{{ product.name }}', '{{ product.price }}')">Add to Cart</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <p>No products available.</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="row">
+            <div class="col-md-3 offset-md-4">
+                <ul class="pagination">
+                    {% if product_objects.has_previous %}
+                        <li class="page-item">
+                            <a href="?page={{ product_objects.previous_page_number }}" class="page-link">Prev</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <a href="" class="page-link">{{ product_objects.number }}</a>
+                    </li>
+                    {% if product_objects.has_next %}
+                        <li class="page-item">
+                            <a href="?page={{ product_objects.next_page_number }}" class="page-link">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    let cart = localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')) : {};
+
+    function updateCartDisplay() {
+        document.getElementById('cart').innerHTML = 'Cart(' + Object.keys(cart).length + ')';
+        if (Object.keys(cart).length !== 0) {
+            document.getElementById('checkoutBtn').className = 'btn btn-success';
+        } else {
+            document.getElementById('checkoutBtn').className = 'btn btn-outline-success';
+        }
+    }
+
+    function displayCart(cart) {
+        let cartStr = '<h5>Cart Contents</h5>';
+        if (Object.keys(cart).length === 0) {
+            cartStr += '<p>Your cart is empty</p>';
+        } else {
+            for (let x in cart) {
+                cartStr += cart[x][1] + ' - Qty: ' + cart[x][0] + '<br>';
+            }
+            cartStr += '<div class="mt-2"><button class="btn btn-warning btn-sm" onclick="clearCart()">Clear Cart</button></div>';
+        }
+        $('#cart')
+            .attr('data-content', cartStr)
+            .popover('dispose')
+            .popover({ html: true, content: cartStr, sanitize: false });
+    }
+
+    function addToCart(itemId, productName, productPrice) {
+        productPrice = parseFloat(productPrice);
+
+        if (!cart[itemId]) {
+            cart[itemId] = [0, productName, 0];
+        }
+        cart[itemId][0] += 1;
+        cart[itemId][2] += productPrice;
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartDisplay();
+        displayCart(cart);
+    }
+
+    function clearCart() {
+        cart = {};
+        localStorage.removeItem('cart');
+        updateCartDisplay();
+        displayCart(cart);
+    }
+
+    $(document).ready(function() {
+        updateCartDisplay();
+        displayCart(cart);
+    });
+</script>
+</html>
+{% endblock %}
