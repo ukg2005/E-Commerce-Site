@@ -52,7 +52,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   useEffect(() => {
     refreshCart();
-  }, [isAuthenticated]);
+  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addToCart = async (productId: number, quantity: number = 1) => {
     try {

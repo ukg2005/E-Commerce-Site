@@ -13,7 +13,7 @@ const ProductList: React.FC = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [filters]);
+  }, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchProducts = async () => {
     setLoading(true);

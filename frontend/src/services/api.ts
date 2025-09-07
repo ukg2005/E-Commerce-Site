@@ -29,7 +29,7 @@ class ApiService {
     this.api.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem('access_token');
-        if (token) {
+        if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -53,10 +53,12 @@ class ApiService {
                 refresh: refreshToken,
               });
               
-              const { access } = response.data;
+              const { access } = response.data as { access: string };
               localStorage.setItem('access_token', access);
               
-              originalRequest.headers.Authorization = `Bearer ${access}`;
+              if (originalRequest.headers) {
+                originalRequest.headers.Authorization = `Bearer ${access}`;
+              }
               return this.api(originalRequest);
             }
           } catch (refreshError) {
@@ -76,7 +78,7 @@ class ApiService {
   // Auth endpoints
   async login(data: LoginData): Promise<AuthTokens> {
     const response = await this.api.post('/auth/login/', data);
-    const tokens = response.data;
+    const tokens = response.data as AuthTokens;
     
     localStorage.setItem('access_token', tokens.access);
     localStorage.setItem('refresh_token', tokens.refresh);
@@ -87,7 +89,7 @@ class ApiService {
 
   async register(data: RegisterData): Promise<AuthTokens> {
     const response = await this.api.post('/auth/register/', data);
-    const tokens = response.data;
+    const tokens = response.data as AuthTokens;
     
     localStorage.setItem('access_token', tokens.access);
     localStorage.setItem('refresh_token', tokens.refresh);
@@ -128,18 +130,18 @@ class ApiService {
     if (filters?.page) params.append('page', filters.page.toString());
 
     const response = await this.api.get(`/products/?${params}`);
-    return response.data;
+    return response.data as { count: number; results: Product[] };
   }
 
   async getProduct(id: number): Promise<Product> {
     const response = await this.api.get(`/products/${id}/`);
-    return response.data;
+    return response.data as Product;
   }
 
   // Cart endpoints
   async getCart(): Promise<Cart> {
     const response = await this.api.get('/cart/');
-    return response.data;
+    return response.data as Cart;
   }
 
   async addToCart(productId: number, quantity: number = 1): Promise<void> {
@@ -164,17 +166,18 @@ class ApiService {
   // Order endpoints
   async getOrders(): Promise<Order[]> {
     const response = await this.api.get('/orders/');
-    return response.data.results || response.data;
+    const data = response.data as any;
+    return data.results || data;
   }
 
   async createOrder(data: OrderData): Promise<Order> {
     const response = await this.api.post('/orders/create/', data);
-    return response.data;
+    return response.data as Order;
   }
 
   async getOrder(id: number): Promise<Order> {
     const response = await this.api.get(`/orders/${id}/`);
-    return response.data;
+    return response.data as Order;
   }
 
   // Utility methods
@@ -188,4 +191,5 @@ class ApiService {
   }
 }
 
-export default new ApiService();
+const apiService = new ApiService();
+export default apiService;
